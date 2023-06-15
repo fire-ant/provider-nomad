@@ -13,4 +13,9 @@ spec:
     meta:
       foo: bar
       owner: John Doe
+    capabilities:
+      - enabledTaskDrivers:
+          - containerd
+          - exec
+          - raw_exec
       #  quotas are only for Enterprise
