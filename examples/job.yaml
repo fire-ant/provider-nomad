@@ -2,7 +2,11 @@
 apiVersion: nomad.nomad.upbound.io/v1alpha1
 kind: Job
 metadata:
-  name: test-job
+  annotations:
+    meta.upbound.io/example-id: nomad/v1alpha1/job
+  labels:
+    testing.upbound.io/example-name: example-job
+  name: example-job
 spec:
   forProvider:
     deregisterOnDestroy: true
@@ -11,8 +15,24 @@ spec:
     hcl2:
     - allowFs: true
       enabled: true
+      # Specify the number of these tasks we want.
       vars:
+        alphacount: "5"
+        betacount: "4"
+        deltacount: "3"
+    policyOverride: true
+    purgeOnDestroy: true
+    json: false
     jobspec: |
+      variable "alphacount" {
+        type = number
+      }
+      variable "betacount" {
+        type = number
+      }
+      variable "deltacount" {
+        type = number
+      }
       job "example" {
         region = "global"
         datacenters = ["us-east-1"]
@@ -22,8 +42,7 @@ spec:
           max_parallel = 3
         }
         group "alpha" {
-          # Specify the number of these tasks we want.
-          count = 5
+          count = var.alphacount
           task "sleep" {
             driver = "exec"
 
@@ -34,8 +53,7 @@ spec:
           }
         }
         group "beta" {
-          # Specify the number of these tasks we want.
-          count = 4
+          count = var.betacount
           task "sleep" {
             driver = "exec"
 
@@ -46,8 +64,7 @@ spec:
           }
         }
         group "delta" {
-          # Specify the number of these tasks we want.
-          count = 3
+          count = var.deltacount
           task "sleep" {
             driver = "exec"
 
@@ -58,6 +75,3 @@ spec:
           }
         }
       }
-    policyOverride: true
-    purgeOnDestroy: true
-#  need an inline jobspec example

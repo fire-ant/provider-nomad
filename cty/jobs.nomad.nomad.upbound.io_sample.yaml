@@ -65,6 +65,7 @@ status:
     jobspec: string
     json: true
     modifyIndex: string
+    name: string
     namespace: string
     policyOverride: true
     purgeOnDestroy: true
