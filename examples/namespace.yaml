@@ -1,0 +1,16 @@
+---
+apiVersion: nomad.nomad.upbound.io/v1alpha1
+kind: NomadNamespace
+metadata:
+  annotations:
+    meta.upbound.io/example-id: nomad/v1alpha1/nomadnamespace
+  labels:
+    testing.upbound.io/example-name: staging
+  name: staging
+spec:
+  forProvider:
+    description: Shared development environment.
+    meta:
+      foo: bar
+      owner: John Doe
+      #  quotas are only for Enterprise
