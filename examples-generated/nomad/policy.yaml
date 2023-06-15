@@ -1,0 +1,27 @@
+apiVersion: nomad.nomad.upbound.io/v1alpha1
+kind: Policy
+metadata:
+  annotations:
+    meta.upbound.io/example-id: nomad/v1alpha1/policy
+  labels:
+    testing.upbound.io/example-name: exec-only
+  name: exec-only
+spec:
+  forProvider:
+    description: Only allow jobs that are based on an exec driver.
+    enforcementLevel: soft-mandatory
+    policy: |
+      main = rule { all_drivers_exec }
+
+      # all_drivers_exec checks that all the drivers in use are exec
+      all_drivers_exec = rule {
+          all job.task_groups as tg {
+              all tg.tasks as task {
+                  task.driver is "exec"
+              }
+          }
+      }
+    scope: submit-job
+
+---
+

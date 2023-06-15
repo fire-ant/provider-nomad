@@ -2,8 +2,22 @@
 set -aeuo pipefail
 
 echo "Running setup.sh"
-echo "Creating cloud credential secret..."
-${KUBECTL} -n upbound-system create secret generic provider-secret --from-literal=credentials="{\"token\":\"${UPTEST_CLOUD_CREDENTIALS}\"}" --dry-run=client -o yaml | ${KUBECTL} apply -f -
+
+echo "Creating a default provider secret..."
+cat <<EOF | ${KUBECTL} apply -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  name: provider-secret
+  namespace: upbound-system
+type: Opaque
+stringData:
+  credentials: |
+    {
+      "address": "http://nomad-service.nomad-system.svc.cluster.local:4646",
+      "region": "global"
+    }
+EOF
 
 echo "Waiting until provider is healthy..."
 ${KUBECTL} wait provider.pkg --all --for condition=Healthy --timeout 5m
@@ -13,7 +27,7 @@ ${KUBECTL} -n upbound-system wait --for=condition=Available deployment --all --t
 
 echo "Creating a default provider config..."
 cat <<EOF | ${KUBECTL} apply -f -
-apiVersion: template.upbound.io/v1beta1
+apiVersion: nomad.upbound.io/v1beta1
 kind: ProviderConfig
 metadata:
   name: default
@@ -24,3 +38,4 @@ spec:
       name: provider-secret
       namespace: upbound-system
       key: credentials
+EOF

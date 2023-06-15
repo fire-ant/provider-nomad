@@ -1,0 +1,34 @@
+apiVersion: acl.nomad.upbound.io/v1alpha1
+kind: Role
+metadata:
+  annotations:
+    meta.upbound.io/example-id: acl/v1alpha1/role
+  labels:
+    testing.upbound.io/example-name: my_nomad_acl_role
+  name: my-nomad-acl-role
+spec:
+  forProvider:
+    description: An ACL Role for cluster developers
+    policy:
+    - name: ${nomad_acl_policy.my_nomad_acl_policy.name}
+
+---
+
+apiVersion: acl.nomad.upbound.io/v1alpha1
+kind: Policy
+metadata:
+  annotations:
+    meta.upbound.io/example-id: acl/v1alpha1/role
+  labels:
+    testing.upbound.io/example-name: my_nomad_acl_policy
+  name: my-nomad-acl-policy
+spec:
+  forProvider:
+    rulesHcl: |
+      namespace "default" {
+        policy       = "read"
+        capabilities = ["submit-job"]
+      }
+
+---
+

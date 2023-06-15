@@ -1,4 +1,4 @@
-module github.com/upbound/upjet-provider-template
+module github.com/fire-ant/provider-nomad
 
 go 1.19
 

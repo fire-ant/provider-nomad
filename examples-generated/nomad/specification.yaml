@@ -1,0 +1,19 @@
+apiVersion: nomad.nomad.upbound.io/v1alpha1
+kind: Specification
+metadata:
+  annotations:
+    meta.upbound.io/example-id: nomad/v1alpha1/specification
+  labels:
+    testing.upbound.io/example-name: prod_api
+  name: prod-api
+spec:
+  forProvider:
+    description: Production instances of backend API servers
+    limits:
+    - region: global
+      regionLimit:
+      - cpu: 2400
+        memoryMb: 1200
+
+---
+

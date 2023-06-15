@@ -1,9 +1,707 @@
-name: hashicorp/null
+name: hashicorp/nomad
 resources:
-    null_resource Resource - terraform-provider-null:
+    nomad_acl_auth_method:
         subCategory: ""
-        description: The null_resource resource implements the standard resource lifecycle but takes no further action. The triggers argument allows specifying an arbitrary set of values that, when changed, will cause the resource to be replaced.
-        name: null_resource Resource - terraform-provider-null
-        title: null_resource Resource - terraform-provider-null
-        argumentDocs: {}
+        description: Manages an ACL Auth Method in Nomad.
+        name: nomad_acl_auth_method
+        title: nomad_acl_auth_method
+        examples:
+            - name: my_nomad_acl_auth_method
+              manifest: |-
+                {
+                  "config": [
+                    {
+                      "allowed_redirect_uris": [
+                        "http://localhost:4649/oidc/callback",
+                        "http://localhost:4646/ui/settings/tokens"
+                      ],
+                      "bound_audiences": [
+                        "someclientid"
+                      ],
+                      "list_claim_mappings": {
+                        "http://nomad.internal/roles": "roles"
+                      },
+                      "oidc_client_id": "someclientid",
+                      "oidc_client_secret": "someclientsecret-t",
+                      "oidc_discovery_url": "https://uk.auth0.com/"
+                    }
+                  ],
+                  "default": true,
+                  "max_token_ttl": "10m0s",
+                  "name": "my-nomad-acl-auth-method",
+                  "token_locality": "global",
+                  "type": "OIDC"
+                }
+        argumentDocs:
+            default: |-
+                (bool: false) - Defines whether this ACL Auth Method is to be set
+                as default.
+            max_token_ttl: |-
+                (string: <required>) - Defines the maximum life of a token
+                created by this method and is specified as a time duration such as "15h".
+            name: '(string: <required>) - The identifier of the ACL Auth Method.'
+            token_locality: |-
+                (string: <required>) - Defines whether the ACL Auth Method
+                creates a local or global token when performing SSO login. This field must be
+                set to either local or global.
+            type: |-
+                (string: <required>) - ACL Auth Method SSO workflow type. Currently,
+                the only supported type is OIDC.
+        importStatements: []
+    nomad_acl_binding_rule:
+        subCategory: ""
+        description: Manages an ACL Binding Rule in Nomad.
+        name: nomad_acl_binding_rule
+        title: nomad_acl_binding_rule
+        examples:
+            - name: my_nomad_acl_binding_rule
+              manifest: |-
+                {
+                  "auth_method": "${nomad_acl_auth_method.my_nomad_acl_auth_method.name}",
+                  "bind_name": "engineering-read-only",
+                  "bind_type": "role",
+                  "description": "engineering rule",
+                  "selector": "engineering in list.roles"
+                }
+              references:
+                auth_method: nomad_acl_auth_method.my_nomad_acl_auth_method.name
+              dependencies:
+                nomad_acl_auth_method.my_nomad_acl_auth_method: |-
+                    {
+                      "config": [
+                        {
+                          "allowed_redirect_uris": [
+                            "http://localhost:4649/oidc/callback",
+                            "http://localhost:4646/ui/settings/tokens"
+                          ],
+                          "bound_audiences": [
+                            "someclientid"
+                          ],
+                          "list_claim_mappings": {
+                            "http://nomad.internal/roles": "roles"
+                          },
+                          "oidc_client_id": "someclientid",
+                          "oidc_client_secret": "someclientsecret-t",
+                          "oidc_discovery_url": "https://uk.auth0.com/"
+                        }
+                      ],
+                      "default": true,
+                      "max_token_ttl": "10m0s",
+                      "name": "my-nomad-acl-auth-method",
+                      "token_locality": "global",
+                      "type": "OIDC"
+                    }
+        argumentDocs:
+            auth_method: |-
+                (string: <required>) - Name of the auth method for which this
+                rule applies to.
+            bind_name: '(string: "") - Target of the binding.'
+            bind_type: |-
+                (string: <required>) - Adjusts how this binding rule is applied
+                at login time. Valid values are role, policy, and management.
+            config: |-
+                : (block: <required>) - Configuration specific to the auth method
+                provider.
+            config.allowed_redirect_uris: |-
+                : ([]string: <optional>) - A list of allowed values
+                that can be used for the redirect URI.
+            config.bound_audiences: |-
+                : ([]string: <optional>) - List of auth claims that are
+                valid for login.
+            config.claim_mappings: |-
+                : (map[string]string: <optional>) - Mappings of claims (key)
+                that will be copied to a metadata field (value).
+            config.discovery_ca_pem: |-
+                : ([]string: <optional>) - PEM encoded CA certs for use
+                by the TLS client used to talk with the OIDC Discovery URL.
+            config.list_claim_mappings: |-
+                : (map[string]string: <optional>) - Mappings of list
+                claims (key) that will be copied to a metadata field (value).
+            config.oidc_client_id: |-
+                : (string: <required>) - The OAuth Client ID configured
+                with the OIDC provider.
+            config.oidc_client_secret: |-
+                : (string: <required>) - The OAuth Client Secret
+                configured with the OIDC provider.
+            config.oidc_discovery_url: |-
+                : (string: <required>) - The OIDC Discovery URL,
+                without any .well-known component (base path).
+            config.oidc_scopes: ': ([]string: <optional>) - List of OIDC scopes.'
+            config.signing_algs: |-
+                : ([]string: <optional>) - A list of supported signing
+                algorithms.
+            description: '(string: "") - Description for this ACL binding rule.'
+            selector: |-
+                (string: "") - A boolean expression that matches against verified
+                identity attributes returned from the auth method during login.
+        importStatements: []
+    nomad_acl_policy:
+        subCategory: ""
+        description: Manages an ACL policy registered on the Nomad server.
+        name: nomad_acl_policy
+        title: nomad_acl_policy
+        examples:
+            - name: dev
+              manifest: |-
+                {
+                  "description": "Submit jobs to the dev environment.",
+                  "name": "dev",
+                  "rules_hcl": "${file(\"${path.module}/dev.hcl\")}"
+                }
+            - name: dev
+              manifest: |-
+                {
+                  "description": "Submit jobs to the dev environment.",
+                  "name": "dev",
+                  "rules_hcl": "namespace \"dev\" {\n  policy = \"write\"\n}\n"
+                }
+        argumentDocs:
+            description: '(string: "") - A description of the policy.'
+            name: '(string: <required>) - A unique name for the policy.'
+            rules_hcl: |-
+                (string: <required>) - The contents of the policy to register,
+                as HCL or JSON.
+        importStatements: []
+    nomad_acl_role:
+        subCategory: ""
+        description: Manages an ACL Role in Nomad.
+        name: nomad_acl_role
+        title: nomad_acl_role
+        examples:
+            - name: my_nomad_acl_role
+              manifest: |-
+                {
+                  "description": "An ACL Role for cluster developers",
+                  "name": "my-nomad-acl-role",
+                  "policy": [
+                    {
+                      "name": "${nomad_acl_policy.my_nomad_acl_policy.name}"
+                    }
+                  ]
+                }
+              references:
+                policy.name: nomad_acl_policy.my_nomad_acl_policy.name
+              dependencies:
+                nomad_acl_policy.my_nomad_acl_policy: |-
+                    {
+                      "name": "my-nomad-acl-policy",
+                      "rules_hcl": "namespace \"default\" {\n  policy       = \"read\"\n  capabilities = [\"submit-job\"]\n}\n"
+                    }
+        argumentDocs:
+            description: '(string: "") - A description of the ACL Role.'
+            name: '(string: <required>) - A human-friendly name for this ACL Role.'
+            policy: |-
+                (set: <required>) - A set of policy names to associate with this
+                ACL Role. It may be used multiple times.
+        importStatements: []
+    nomad_acl_token:
+        subCategory: ""
+        description: Manages an ACL token in Nomad.
+        name: nomad_acl_token
+        title: nomad_acl_token
+        examples:
+            - name: dakota
+              manifest: |-
+                {
+                  "name": "Dakota",
+                  "policies": [
+                    "dev",
+                    "qa"
+                  ],
+                  "type": "client"
+                }
+            - name: dakota
+              manifest: |-
+                {
+                  "global": true,
+                  "name": "Dakota",
+                  "policies": [
+                    "dev",
+                    "qa"
+                  ],
+                  "type": "client"
+                }
+            - name: iman
+              manifest: |-
+                {
+                  "name": "Iman",
+                  "type": "management"
+                }
+            - name: token
+              manifest: |-
+                {
+                  "policies": [
+                    "dev"
+                  ],
+                  "type": "client"
+                }
+        argumentDocs:
+            accessor_id: |-
+                (string) - A non-sensitive identifier for this token that
+                can be logged and shared safely without granting any access to the cluster.
+            create_time: (string) - The timestamp the token was created.
+            expiration_time: |-
+                (string) - The timestamp after which the token is
+                considered expired and eligible for destruction.
+            expiration_ttl: |-
+                (string: "") - Provides a TTL for the token in the form of
+                a time duration such as "5m" or "1h".
+            global: |-
+                (bool: false) - Whether the token should be replicated to all
+                regions, or if it will only be used in the region it was created in.
+            name: '(string: "") - A human-friendly name for this token.'
+            policies: |-
+                (set: []) - A set of policy names to associate with this
+                token. Must be set on client-type tokens, must not be set on
+                management-type tokens. Policies do not need to exist before being
+                used here.
+            role: |-
+                (set: []) - The list of roles attached to the token. Each entry has
+                name and id attributes. It may be used multiple times.
+            secret_id: |-
+                (string) - The token value itself, which is presented for
+                access to the cluster.
+            type: |-
+                (string: <required>) - The type of token this is. Use client
+                for tokens that will have policies associated with them. Use management
+                for tokens that can perform any action.
+        importStatements: []
+    nomad_external_volume:
+        subCategory: ""
+        description: Manages the lifecycle of creating and deleting Nomad volumes.
+        name: nomad_external_volume
+        title: nomad_external_volume
+        examples:
+            - name: mysql_volume
+              manifest: |-
+                {
+                  "capability": [
+                    {
+                      "access_mode": "single-node-writer",
+                      "attachment_mode": "file-system"
+                    }
+                  ],
+                  "capacity_max": "20GiB",
+                  "capacity_min": "10GiB",
+                  "depends_on": [
+                    "${data.nomad_plugin.ebs}"
+                  ],
+                  "mount_options": [
+                    {
+                      "fs_type": "ext4"
+                    }
+                  ],
+                  "name": "mysql_volume",
+                  "plugin_id": "aws-ebs0",
+                  "topology_request": [
+                    {
+                      "required": [
+                        {
+                          "topology": [
+                            {
+                              "segments": {
+                                "rack": "R1",
+                                "zone": "us-east-1a"
+                              }
+                            },
+                            {
+                              "segments": {
+                                "rack": "R2"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "type": "csi",
+                  "volume_id": "mysql_volume"
+                }
+        argumentDocs:
+            access_mode: ': (string: <required>) - Defines whether a volume should be available concurrently. Possible values are:'
+            attachment_mode: ': (string: <required>) - The storage API that will be used by the volume. Possible values are:'
+            capability: ': (Capability: <required>) - Options for validating the capability of a volume.'
+            capacity_max: ': (string: <optional>) - Option to signal a maximum volume size. This may not be supported by all storage providers.'
+            capacity_min: ': (string: <optional>) - Option to signal a minimum volume size. This may not be supported by all storage providers.'
+            clone_id: ': (string: <optional>) - The external ID of an existing volume to restore. If ommited, the volume will be created from scratch. Conflicts with snapshot_id.'
+            controller_required: ': (boolean)'
+            controllers_expected: ': (integer)'
+            controllers_healthy: ': (integer)'
+            fs_type: ': (string: optional) - The file system type.'
+            mount_flags: ': []string: optional - The flags passed to mount.'
+            mount_options: ': (block: optional) Options for mounting block-device volumes without a pre-formatted file system.'
+            name: ': (string: <required>) - The display name for the volume.'
+            namespace: ': (string: "default") - The namespace in which to register the volume.'
+            nodes_expected: ': (integer)'
+            nodes_healthy: ': (integer)'
+            parameters: ': (map[string]string: optional) An optional key-value map of strings passed directly to the CSI plugin to configure the volume.'
+            plugin_id: ': (string: <required>) - The ID of the Nomad plugin for registering this volume.'
+            plugin_provider: ': (string)'
+            plugin_provider_version: ': (string)'
+            preferred: ': (Topology: <optional>) - Preferred topologies indicate that the volume should be created in a location accessible from some of the listed topologies.'
+            required: ': (Topology: <optional>) - Required topologies indicate that the volume must be created in a location accessible from all the listed topologies.'
+            schedulable: ': (boolean)'
+            secrets: ': (map[string]string: optional) An optional key-value map of strings used as credentials for publishing and unpublishing volumes.'
+            segments: ': (map[string]string) - Define the attributes for the topology request.'
+            snapshot_id: ': (string: <optional>) - The external ID of a snapshot to restore. If ommited, the volume will be created from scratch. Conflicts with clone_id.'
+            topologies: ': (List of topologies)'
+            topology: ': (List of segments: <required>) - Defines the location for the volume.'
+            topology_request: ': (TopologyRequest: <optional>) - Specify locations (region, zone, rack, etc.) where the provisioned volume is accessible from.'
+            type: ': (string: <required>) - The type of the volume. Currently, only csi is supported.'
+            volume_id: ': (string: <required>) - The unique ID of the volume.'
+        importStatements: []
+    nomad_job:
+        subCategory: ""
+        description: Manages the lifecycle of registering and deregistering Nomad jobs (applications).
+        name: nomad_job
+        title: nomad_job
+        examples:
+            - name: app
+              manifest: |-
+                {
+                  "jobspec": "${file(\"${path.module}/jobspec.hcl\")}"
+                }
+            - name: app
+              manifest: |-
+                {
+                  "jobspec": "job \"foo\" {\n  datacenters = [\"dc1\"]\n  type        = \"service\"\n  group \"foo\" {\n    task \"foo\" {\n      driver = \"raw_exec\"\n      config {\n        command = \"/bin/sleep\"\n        args    = [\"1\"]\n      }\n\n      resources {\n        cpu    = 20\n        memory = 10\n      }\n\n      logs {\n        max_files     = 3\n        max_file_size = 10\n      }\n    }\n  }\n}\n"
+                }
+            - name: app
+              manifest: |-
+                {
+                  "jobspec": "${file(\"${path.module}/jobspec.json\")}",
+                  "json": true
+                }
+            - name: app
+              manifest: |-
+                {
+                  "hcl2": [
+                    {
+                      "enabled": true
+                    }
+                  ],
+                  "jobspec": "${file(\"${path.module}/jobspec.hcl\")}"
+                }
+            - name: app
+              manifest: |-
+                {
+                  "hcl2": [
+                    {
+                      "enabled": true,
+                      "vars": {
+                        "datacenters": "[\"dc1\", \"dc2\"]",
+                        "restart_attempts": "5"
+                      }
+                    }
+                  ],
+                  "jobspec": "variable \"datacenters\" {\n  type = list(string)\n}\n\nvariable \"restart_attempts\" {\n  type = number\n}\n\njob \"foo-hcl2\" {\n  datacenters = var.datacenters\n\n  restart {\n    attempts = var.restart_attempts\n    ...\n  }\n  ...\n}\n"
+                }
+            - name: job_with_hcl2
+              manifest: |-
+                {
+                  "hcl2": [
+                    {
+                      "enabled": true,
+                      "vars": {
+                        "datacenter": "${random_pet.random_dc.id}"
+                      }
+                    }
+                  ],
+                  "jobspec": "variable \"datacenter\" {\n  type = string\n}\n\njob \"example\" {\n  datacenters = [var.datacenter]\n  ...\n}\n"
+                }
+              dependencies:
+                random_pet.random_dc: '{}'
+            - name: job_with_hcl2
+              manifest: |-
+                {
+                  "hcl2": [
+                    {
+                      "enabled": true
+                    }
+                  ],
+                  "jobspec": "job \"example\" {\n  datacenters = [\"${random_pet.random_dc.id}\"]\n  ...\n}\n"
+                }
+              dependencies:
+                random_pet.random_dc: '{}'
+            - name: app
+              manifest: |-
+                {
+                  "hcl2": [
+                    {
+                      "allow_fs": true,
+                      "enabled": true
+                    }
+                  ],
+                  "jobspec": "${file(\"${path.module}/jobspec.hcl\")}"
+                }
+            - name: nginx
+              manifest: |-
+                {
+                  "jobspec": "${templatefile(\"${path.module}/nginx.nomad.tpl\", {\n    index_html = data.local_file.index_html.content\n  })}"
+                }
+        argumentDocs:
+            consul_token: |-
+                (string: <optional>) - Consul token used when registering this job.
+                Will fallback to the value declared in Nomad provider configuration, if any.
+            create: '(string: "5m") - Timeout when registering a new job.'
+            deregister_on_destroy: |-
+                (boolean: true) - Determines if the job will be
+                deregistered when this resource is destroyed in Terraform.
+            deregister_on_id_change: |-
+                (boolean: true) - Determines if the job will be
+                deregistered if the ID of the job in the jobspec changes.
+            detach: |-
+                (boolean: true) - If true, the provider will return immediately
+                after creating or updating, instead of monitoring.
+            hcl2: '(block: optional) - Options for the HCL2 jobspec parser.'
+            hcl2.allow_fs: |-
+                (boolean: false) - Set this to true to be able to use
+                HCL2 filesystem functions
+            hcl2.enabled: |-
+                (boolean: false) - Set this to true if your jobspec uses the HCL2
+                format instead of the default HCL.
+            jobspec: '(string: <required>) - The contents of the jobspec to register.'
+            json: |-
+                (boolean: false) - Set this to true if your jobspec is structured with
+                JSON instead of the default HCL.
+            policy_override: |-
+                (boolean: false) - Determines if the job will override any
+                soft-mandatory Sentinel policies and register even if they fail.
+            purge_on_destroy: |-
+                (boolean: false) - Set this to true if you want the job to
+                be purged when the resource is destroyed.
+            update: '(string: "5m") - Timeout when updating an existing job.'
+            vault_token: |-
+                (string: <optional>) - Vault token used when registering this job.
+                Will fallback to the value declared in Nomad provider configuration, if any.
+        importStatements: []
+    nomad_namespace:
+        subCategory: ""
+        description: Provisions a namespace within a Nomad cluster.
+        name: nomad_namespace
+        title: nomad_namespace
+        examples:
+            - name: dev
+              manifest: |-
+                {
+                  "description": "Shared development environment.",
+                  "meta": {
+                    "foo": "bar",
+                    "owner": "John Doe"
+                  },
+                  "name": "dev",
+                  "quota": "dev"
+                }
+            - name: web
+              manifest: |-
+                {
+                  "description": "Web team production environment.",
+                  "name": "web",
+                  "quota": "${nomad_quota_specification.web_team.name}"
+                }
+              references:
+                quota: nomad_quota_specification.web_team.name
+              dependencies:
+                nomad_quota_specification.web_team: |-
+                    {
+                      "description": "web team quota",
+                      "limits": [
+                        {
+                          "region": "global",
+                          "region_limit": [
+                            {
+                              "cpu": 1000,
+                              "memory_mb": 256
+                            }
+                          ]
+                        }
+                      ],
+                      "name": "web-team"
+                    }
+        argumentDocs:
+            capabilities: |-
+                (block: <optional>) - A block of capabilities for the namespace. Can't
+                be repeated. See below for the structure of this block.
+            capabilities.disabled_task_drivers: '([]string: <optional>) - Task drivers disabled for the namespace.'
+            capabilities.enabled_task_drivers: '([]string: <optional>) - Task drivers enabled for the namespace.'
+            description: '(string: "") - A description of the namespace.'
+            meta: '(map[string]string: <optional>) -  Specifies arbitrary KV metadata to associate with the namespace.'
+            name: '(string: <required>) - A unique name for the namespace.'
+            quota: '(string: "") - A resource quota to attach to the namespace.'
+        importStatements: []
+    nomad_quota_specification:
+        subCategory: ""
+        description: Manages a quota specification in a Nomad cluster.
+        name: nomad_quota_specification
+        title: nomad_quota_specification
+        examples:
+            - name: prod_api
+              manifest: |-
+                {
+                  "description": "Production instances of backend API servers",
+                  "limits": [
+                    {
+                      "region": "global",
+                      "region_limit": [
+                        {
+                          "cpu": 2400,
+                          "memory_mb": 1200
+                        }
+                      ]
+                    }
+                  ],
+                  "name": "prod-api"
+                }
+        argumentDocs:
+            description: '(string: "") - A description of the quota specification.'
+            limits: |-
+                (block: <required>) - A block of quota limits to enforce. Can
+                be repeated. See below for the structure of this block.
+            limits.region: '(string: <required>) - The region these limits should apply to.'
+            limits.region_limit: |-
+                (block: <required>) - The limits to enforce. This block
+                may only be specified once in the limits block. Its structure is
+                documented below.
+            limits.region_limit.cpu: |-
+                (int: 0) - The amount of CPU to limit allocations to. A value of zero
+                is treated as unlimited, and a negative value is treated as fully disallowed.
+            limits.region_limit.memory_mb: |-
+                (int: 0) - The amount of memory (in megabytes) to limit
+                allocations to. A value of zero is treated as unlimited, and a negative value
+                is treated as fully disallowed.
+            name: '(string: <required>) - A unique name for the quota specification.'
+        importStatements: []
+    nomad_scheduler_config:
+        subCategory: ""
+        description: Manages scheduler configuration on the Nomad server.
+        name: nomad_scheduler_config
+        title: nomad_scheduler_config
+        examples:
+            - name: config
+              manifest: |-
+                {
+                  "memory_oversubscription_enabled": true,
+                  "preemption_config": {
+                    "batch_scheduler_enabled": true,
+                    "service_scheduler_enabled": true,
+                    "sysbatch_scheduler_enabled": true,
+                    "system_scheduler_enabled": true
+                  },
+                  "scheduler_algorithm": "spread"
+                }
+        argumentDocs:
+            batch_scheduler_enabled: '(bool: false") - Specifies whether preemption for batch jobs is enabled. Note that if this is set to true, then batch jobs can preempt any other jobs.'
+            memory_oversubscription_enabled: '(bool: false) - When true, tasks may exceed their reserved memory limit.'
+            preemption_config: (map[string]bool) - Options to enable preemption for various schedulers.
+            scheduler_algorithm: '(string: "binpack") - Specifies whether scheduler binpacks or spreads allocations on available nodes. Possible values are binpack and spread.'
+            service_scheduler_enabled: '(bool: false) - Specifies whether preemption for service jobs is enabled. Note that if this is set to true, then service jobs can preempt any other jobs.'
+            sysbatch_scheduler_enabled: '(bool: false) - Specifies whether preemption for sysbatch (system batch) jobs is enabled. Note that if this is set to true, then system batch jobs can preempt any other jobs.'
+            system_scheduler_enabled: '(bool: true) - Specifies whether preemption for system jobs is enabled. Note that if this is set to true, then system jobs can preempt any other jobs.'
+        importStatements: []
+    nomad_sentinel_policy:
+        subCategory: ""
+        description: Manages a Sentinel policy registered on the Nomad server.
+        name: nomad_sentinel_policy
+        title: nomad_sentinel_policy
+        examples:
+            - name: exec-only
+              manifest: |-
+                {
+                  "description": "Only allow jobs that are based on an exec driver.",
+                  "enforcement_level": "soft-mandatory",
+                  "name": "exec-only",
+                  "policy": "main = rule { all_drivers_exec }\n\n# all_drivers_exec checks that all the drivers in use are exec\nall_drivers_exec = rule {\n    all job.task_groups as tg {\n        all tg.tasks as task {\n            task.driver is \"exec\"\n        }\n    }\n}\n",
+                  "scope": "submit-job"
+                }
+        argumentDocs:
+            description: '(string: "") - A description of the policy.'
+            enforcement_level: |-
+                (strings: <required>) - The enforcement level
+                for this policy.
+            name: '(string: <required>) - A unique name for the policy.'
+            policy: '(string: <required>) - The contents of the policy to register.'
+            scope: '(strings: <required>) - The scope for this policy.'
+        importStatements: []
+    nomad_volume:
+        subCategory: ""
+        description: Manages the lifecycle of registering and deregistering Nomad volumes.
+        name: nomad_volume
+        title: nomad_volume
+        examples:
+            - name: mysql_volume
+              manifest: |-
+                {
+                  "capability": [
+                    {
+                      "access_mode": "single-node-writer",
+                      "attachment_mode": "file-system"
+                    }
+                  ],
+                  "depends_on": [
+                    "${data.nomad_plugin.ebs}"
+                  ],
+                  "external_id": "${module.hashistack.ebs_test_volume_id}",
+                  "mount_options": [
+                    {
+                      "fs_type": "ext4"
+                    }
+                  ],
+                  "name": "mysql_volume",
+                  "plugin_id": "aws-ebs0",
+                  "topology_request": [
+                    {
+                      "required": [
+                        {
+                          "topology": [
+                            {
+                              "segments": {
+                                "rack": "R1",
+                                "zone": "us-east-1a"
+                              }
+                            },
+                            {
+                              "segments": {
+                                "rack": "R2"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "type": "csi",
+                  "volume_id": "mysql_volume"
+                }
+              references:
+                external_id: module.hashistack.ebs_test_volume_id
+        argumentDocs:
+            access_mode: ': (string: <optional>) - Deprecated. Use capability block instead. Defines whether a volume should be available concurrently. Possible values are:'
+            attachment_mode: ': (string: <otional>) - Deprecated. Use capability block instead. The storage API that will be used by the volume.'
+            capability: ': (Capability: <required>) - Options for validating the capability of a volume.'
+            context: ': (map[string]string: <optional>) - An optional key-value map of strings passed directly to the CSI plugin to validate the volume.'
+            controller_required: ': (boolean)'
+            controllers_expected: ': (integer)'
+            controllers_healthy: ': (integer)'
+            deregister_on_destroy: ': (boolean: false) - If true, the volume will be deregistered on destroy.'
+            external_id: ': (string: <required>) - The ID of the physical volume from the storage provider.'
+            fs_type: ': (string: <optional>) - The file system type.'
+            mount_flags: ': ([]string: <optional>) - The flags passed to mount.'
+            mount_options: ': (block: <optional>) Options for mounting block-device volumes without a pre-formatted file system.'
+            name: ': (string: <required>) - The display name for the volume.'
+            namespace: ': (string: "default") - The namespace in which to register the volume.'
+            nodes_expected: ': (integer)'
+            nodes_healthy: ': (integer)'
+            parameters: ': (map[string]string: <optional>) - An optional key-value map of strings passed directly to the CSI plugin to configure the volume.'
+            plugin_id: ': (string: <required>) - The ID of the Nomad plugin for registering this volume.'
+            plugin_provider: ': (string)'
+            plugin_provider_version: ': (string)'
+            required: ': (Topology: <optional>) - Required topologies indicate that the volume must be created in a location accessible from all the listed topologies.'
+            schedulable: ': (boolean)'
+            secrets: ': (map[string]string: <optional>) - An optional key-value map of strings used as credentials for publishing and unpublishing volumes.'
+            segments: ': (map[string]string) - Define the attributes for the topology request.'
+            topologies: ': (List of topologies)'
+            topology: ': (List of segments: <required>) - Defines the location for the volume.'
+            topology_request: ': (TopologyRequest: <optional>) - Specify locations (region, zone, rack, etc.) where the provisioned volume is accessible from.'
+            type: ': (string: <required>) - The type of the volume. Currently, only csi is supported.'
+            volume_id: ': (string: <required>) - The unique ID of the volume.'
         importStatements: []

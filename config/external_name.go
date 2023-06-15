@@ -10,7 +10,18 @@ import "github.com/upbound/upjet/pkg/config"
 // provider.
 var ExternalNameConfigs = map[string]config.ExternalName{
 	// Import requires using a randomly generated ID from provider: nl-2e21sda
-	"null_resource": config.IdentifierFromProvider,
+	"nomad_acl_auth_method":     config.NameAsIdentifier,
+	"nomad_acl_binding_rule":    config.NameAsIdentifier,
+	"nomad_acl_policy":          config.NameAsIdentifier,
+	"nomad_acl_role":            config.NameAsIdentifier,
+	"nomad_acl_token":           config.NameAsIdentifier,
+	"nomad_acl_external_volume": config.NameAsIdentifier,
+	"nomad_job":                 config.IdentifierFromProvider,
+	"nomad_namespace":           config.NameAsIdentifier,
+	"nomad_quota_specification": config.NameAsIdentifier,
+	"nomad_scheduler_config":    config.NameAsIdentifier,
+	"nomad_sentinel_policy":     config.NameAsIdentifier,
+	"nomad_volume":              config.NameAsIdentifier,
 }
 
 // ExternalNameConfigurations applies all external name configs listed in the

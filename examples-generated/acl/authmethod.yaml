@@ -1,0 +1,31 @@
+apiVersion: acl.nomad.upbound.io/v1alpha1
+kind: AuthMethod
+metadata:
+  annotations:
+    meta.upbound.io/example-id: acl/v1alpha1/authmethod
+  labels:
+    testing.upbound.io/example-name: my_nomad_acl_auth_method
+  name: my-nomad-acl-auth-method
+spec:
+  forProvider:
+    config:
+    - allowedRedirectUris:
+      - http://localhost:4649/oidc/callback
+      - http://localhost:4646/ui/settings/tokens
+      boundAudiences:
+      - someclientid
+      listClaimMappings:
+        http://nomad.internal/roles: roles
+      oidcClientId: someclientid
+      oidcClientSecretSecretRef:
+        key: example-key
+        name: example-secret
+        namespace: upbound-system
+      oidcDiscoveryUrl: https://uk.auth0.com/
+    default: true
+    maxTokenTtl: 10m0s
+    tokenLocality: global
+    type: OIDC
+
+---
+

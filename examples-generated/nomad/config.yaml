@@ -1,0 +1,20 @@
+apiVersion: nomad.nomad.upbound.io/v1alpha1
+kind: Config
+metadata:
+  annotations:
+    meta.upbound.io/example-id: nomad/v1alpha1/config
+  labels:
+    testing.upbound.io/example-name: config
+  name: config
+spec:
+  forProvider:
+    memoryOversubscriptionEnabled: true
+    preemptionConfig:
+      batch_scheduler_enabled: true
+      service_scheduler_enabled: true
+      sysbatch_scheduler_enabled: true
+      system_scheduler_enabled: true
+    schedulerAlgorithm: spread
+
+---
+

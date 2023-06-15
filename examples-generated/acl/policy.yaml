@@ -1,0 +1,15 @@
+apiVersion: acl.nomad.upbound.io/v1alpha1
+kind: Policy
+metadata:
+  annotations:
+    meta.upbound.io/example-id: acl/v1alpha1/policy
+  labels:
+    testing.upbound.io/example-name: dev
+  name: dev
+spec:
+  forProvider:
+    description: Submit jobs to the dev environment.
+    rulesHcl: ${file("${path.module}/dev.hcl")}
+
+---
+

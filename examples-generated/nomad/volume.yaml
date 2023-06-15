@@ -1,0 +1,30 @@
+apiVersion: nomad.nomad.upbound.io/v1alpha1
+kind: Volume
+metadata:
+  annotations:
+    meta.upbound.io/example-id: nomad/v1alpha1/volume
+  labels:
+    testing.upbound.io/example-name: mysql_volume
+  name: mysql-volume
+spec:
+  forProvider:
+    capability:
+    - accessMode: single-node-writer
+      attachmentMode: file-system
+    externalId: ${module.hashistack.ebs_test_volume_id}
+    mountOptions:
+    - fsType: ext4
+    pluginId: aws-ebs0
+    topologyRequest:
+    - required:
+      - topology:
+        - segments:
+            rack: R1
+            zone: us-east-1a
+        - segments:
+            rack: R2
+    type: csi
+    volumeId: mysql_volume
+
+---
+

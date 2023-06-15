@@ -1,0 +1,67 @@
+# https://github.com/multani/docker-nomad/tree/master
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nomad
+  namespace: nomad-system
+  labels:
+    app.kubernetes.io/name: nomad
+spec:
+  replicas: 1
+  progressDeadlineSeconds: 45
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: nomad
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: nomad
+    spec:
+      volumes:
+        - name: sock
+          hostPath:
+            path: /var/run/containerd/containerd.sock
+            type: Socket
+      containers:
+        - args:
+            - agent
+            - -dev
+          env:
+            - name: NOMAD_LOCAL_CONFIG
+              value: |
+                client {
+                  enabled = true
+                }
+                server {
+                  enabled = true
+                  bootstrap_expect = 1
+                }
+                region     = "global"
+                datacenter = "us-east-1"
+                name =  "optimus-prime"
+                data_dir = "/nomad/data"
+
+                bind_addr = "0.0.0.0"
+                advertise {
+                  http = "{{ GetPrivateIP }}:4646"
+                  rpc  = "{{ GetPrivateIP }}:4647"
+                  serf = "{{ GetPrivateIP }}:4648"
+                }
+                plugin "containerd-driver" {
+                  config {
+                    enabled = true
+                    containerd_runtime = "io.containerd.runc.v2"
+                    stats_interval = "5s"
+                  }
+                }
+          image: multani/nomad
+          name: nomad
+          resources: {}
+          securityContext:
+            privileged: true
+            runAsUser: 0
+          volumeMounts:
+          - mountPath: /var/run/containerd/containerd.sock
+            name: sock

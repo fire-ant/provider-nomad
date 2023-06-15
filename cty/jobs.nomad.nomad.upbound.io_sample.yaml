@@ -1,0 +1,95 @@
+apiVersion: nomad.nomad.upbound.io/v1alpha1
+kind: Job
+metadata: {}
+spec:
+  deletionPolicy: string
+  forProvider:
+    consulTokenSecretRef:
+      key: string
+      name: string
+      namespace: string
+    deregisterOnDestroy: true
+    deregisterOnIdChange: true
+    detach: true
+    hcl2:
+    - allowFs: true
+      enabled: true
+      vars:
+    jobspec: string
+    json: true
+    policyOverride: true
+    purgeOnDestroy: true
+    vaultTokenSecretRef:
+      key: string
+      name: string
+      namespace: string
+  managementPolicy: string
+  providerConfigRef:
+    name: string
+    policy:
+      resolution: string
+      resolve: string
+  providerRef:
+    name: string
+    policy:
+      resolution: string
+      resolve: string
+  publishConnectionDetailsTo:
+    configRef:
+      name: string
+      policy:
+        resolution: string
+        resolve: string
+    metadata:
+      annotations:
+      labels:
+      type: string
+    name: string
+  writeConnectionSecretToRef:
+    name: string
+    namespace: string
+status:
+  atProvider:
+    allocationIds: ["string"]
+    datacenters: ["string"]
+    deploymentId: string
+    deploymentStatus: string
+    deregisterOnDestroy: true
+    deregisterOnIdChange: true
+    detach: true
+    hcl2:
+    - allowFs: true
+      enabled: true
+      vars:
+    id: string
+    jobspec: string
+    json: true
+    modifyIndex: string
+    namespace: string
+    policyOverride: true
+    purgeOnDestroy: true
+    region: string
+    taskGroups:
+    - count: number
+      meta:
+      name: string
+      task:
+      - driver: string
+        meta:
+        name: string
+        volumeMounts:
+        - destination: string
+          readOnly: true
+          volume: string
+      volumes:
+      - name: string
+        readOnly: true
+        source: string
+        type: string
+    type: string
+  conditions:
+  - lastTransitionTime: string
+    message: string
+    reason: string
+    status: string
+    type: string

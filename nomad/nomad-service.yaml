@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nomad-service
+  namespace: nomad-system
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: nomad
+  ports:
+    - protocol: TCP
+      port: 4646
+      targetPort: 4646
+      name: http
+    - protocol: TCP
+      port: 4647
+      name: rpc
+      targetPort: 4647
+    - protocol: TCP
+      port: 4648
+      targetPort: 4648
+      name: serf

@@ -1,0 +1,14 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: provider-nomad-default
+  namespace: nomad-system
+spec:
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              provider-nomad-default: "true"
+  podSelector:
+    matchLabels:
+      provider-nomad-default: "true"
