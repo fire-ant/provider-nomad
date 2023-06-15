@@ -75,6 +75,5 @@ func TerraformSetupBuilder(version, providerSource, providerVersion string) terr
 			ps.Configuration[region] = v
 		}
 		return ps, nil
-		return ps, nil
 	}
 }
